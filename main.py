@@ -6,7 +6,7 @@ from datetime import datetime
 import pandas as pd
 from twython import Twython
 from config import TweetConfig
-
+from urllib.parse import urlencode
 # api refence: https://developer.twitter.com/en/docs/twitter-api/v1/tweets/search/api-reference/get-search-tweets
 
 def load_config():
@@ -49,14 +49,25 @@ def get_parser():
     parser.add_argument('-c', '--count', default=1000, type=int, help='一次要取多少資料 上限為450*100 (450次/15min 上限)')
     parser.add_argument('-l', '--last_id', default=-1,type=int, help='重複執行會從./config.txt 取得上次跑到那的紀錄')
     parser.add_argument('-e', '--end_date', default='',type=str, help='ex: "2021-11-01" 如果不是要從當下時間開始往回找資料則需要指定日期')
+    parser.add_argument('-n', '--new',default='',help='重啟搜尋')
     parser.add_argument('-v',help='是否顯示log')
     return parser
 
+def key_encoding(key):
+    """
+    encoding for urlencode
+    """
+    return urlencode({'q':key})[2:]
+
 if __name__ == "__main__":
     try:
-        config = load_config()
+        
         parser = get_parser()
         args = parser.parse_args()
+        if args.new:
+            config = {}
+        else:
+            config = load_config()
         t = Twython(TweetConfig.API_KEY, TweetConfig.API_KEY_SECRET)
         query_key = args.querykey
         fn = args.filename
@@ -85,7 +96,8 @@ if __name__ == "__main__":
                     query_result = t.search(q=query_key,count=data_per_request)
             twitters = query_result['statuses']
             result = [format_twitter(twitter) for twitter in twitters]
-            last_id = result[-1]['twitter_id'] -1
+            if result:
+                last_id = result[-1]['twitter_id'] -1
             data_count = data_count + len(result)
             if args.v:
                 print(f'{(i+1)*data_per_request:5d} data got, last id: {last_id}')
@@ -93,7 +105,7 @@ if __name__ == "__main__":
             if os.path.isfile(fn):
                 df.to_csv(fn, mode='a', encoding='utf-8',index=False, header=False)
             else:
-                df.to_csv(fn, mode='a', encoding='utf-8',index=False, header=False)
+                df.to_csv(fn, mode='a', encoding='utf-8',index=False)
         config['last_id'] = last_id
         print(f'data_add:{data_count}')
         save_config(config)
