@@ -1,15 +1,24 @@
 ## api 參考
 https://developer.twitter.com/en/docs/twitter-api/v1/tweets/search/api-reference/get-search-tweets
 
+## 使用限制
+官方限制: 450 request / 15分
+所以有需要可以設定好參數 15分為間隔執行
+
 ## install
 ```
 pip install -r requirements.txt
 ```
 
-## 需要修改參數
+## example
+取得 最新500 則 bitcoin 推特並且存成csv檔案
 ```
-query_target = 'bitcoin' #你要查的關鍵字
-start_date = datetime.strftime(datetime(2021,10,25),'%Y-%m-%d') #最後時間格是為 2021-11-02
-end_date = datetime.strftime(datetime(2021,10,31),'%Y-%m-%d')
-last_id = None # 一次request 只拿到100筆 要繼續取完就 要拿id -1
-'''
+python main.py -c 5000 -q bitcoin -f 'twitter.csv'
+```
+
+取得 2021/11/1前最新500 則 bitcoin 推特並且存成csv檔案
+```
+python main.py -e '2021-11-01' -c 5000 -q bitcoin -f 'twitter.csv'
+```
+
+執行後會出現config.txt 會記錄上一次執行在哪裡 如果還要繼續加入新的資料 則直接執行程式會從上一次執行的繼續跑
