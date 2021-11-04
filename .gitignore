@@ -147,3 +147,4 @@ tmp.*
 # test data
 *.csv
 config.txt
+praw.ini
